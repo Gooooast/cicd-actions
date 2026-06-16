@@ -1,0 +1,36 @@
+name: CD
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      buildNumber:
+        required: true
+        type: string
+
+  workflow_dispatch:
+    inputs:
+      environment:
+          description: 'Deployment environment (e.g., uat92, uat93)'
+          required: true
+          type: choice
+          options:
+            - uat92
+            - uat93
+      buildNumber:
+          description: 'Build number to deploy'
+          required: true
+          type: string
+
+jobs:
+  prepare-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up deployment variables
+        id: set-vars
+        run: |
+          echo "Preparing deployment for environment: ${{ inputs.environment }} with build number: ${{ inputs.buildNumber }}"
+          echo "ENVIRONMENT=${{ inputs.environment }}" >> $GITHUB_ENV
+          echo "BUILD_NUMBER=${{ inputs.buildNumber }}" >> $GITHUB_ENV
