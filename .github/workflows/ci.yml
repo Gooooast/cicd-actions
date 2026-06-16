@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+      - "feature/was9_common"
+      - "feature/pre-production"
+  push:
+    branches:
+      - master
+    tags:
+      - "v*.*.*"
+jobs:
+  build:
+    name: Lint, Build & Test
+    runs-on: ubuntu-latest
+    outputs:
+      build_number: ${{ steps.metadata.outputs.build_number }}
+      environment: ${{ steps.metadata.outputs.environment }}
+      should_deploy: ${{ steps.metadata.outputs.should_deploy }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Prepare Metadata Info
+        id: metadata
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            echo "build_number=uat92-${GITHUB_SHA::7}-${{ github.run_id }}-${{ github.run_attempt }}" >> $GITHUB_OUTPUT
+            echo "environment=uat92" >> $GITHUB_OUTPUT
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          
+          elif [[ "${{ github.ref }}" == "refs/heads/feature/was9_common" ]]; then
+            echo "build_number=uat93-was9common-${GITHUB_SHA::7}-${{ github.run_id }}-${{ github.run_attempt }}" >> $GITHUB_OUTPUT
+            echo "environment=uat93-was9common" >> $GITHUB_OUTPUT
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "build_number=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+            echo "environment=prod" >> $GITHUB_OUTPUT
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          
+          else
+            echo "build_number=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+            echo "environment=none" >> $GITHUB_OUTPUT
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build war
+        run: echo "build war success"
+
+      - name: build docker
+        run: echo "build docker success"
+
+  trigger-cd-uat92:
+    needs: build
+    if: needs.build.outputs.should_deploy == 'true' && needs.build.outputs.environment == 'uat92'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger deployment to UAT92
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const result = await github.rest.actions.createWorkflowDispatch({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            workflow_id: 'cd.yml',
+            ref: 'develop',
+            inputs: {
+              environment: 'uat92',
+              buildNumber: '${{ needs.build.outputs.build_number }}'
+            }
+            )};
+
+            core.summary
+              .addHeading('UAT92 Deployment Triggered')
+              .addTable([
+                [ { data: 'Environment', header: true }, { data: 'Build Number', header: true } ],
+                [ 'uat92', '${{ needs.build.outputs.build_number }}' ]
+              ])
+              .addLink('View Workflow', `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/workflows/cd.yml`)
+              .write();
+
+  trigger-cd-uat93-was9common:
+    needs: build
+    if: needs.build.outputs.should_deploy == 'true' && needs.build.outputs.environment == 'uat93-was9common'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger deployment to UAT93
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const result = await github.rest.actions.createWorkflowDispatch({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            workflow_id: 'cd.yml',
+            ref: 'feature/was9_common',
+            inputs: {
+              environment: 'uat93',
+              buildNumber: '${{ needs.build.outputs.build_number }}'
+            }
+            )};
+
+            core.summary
+              .addHeading('UAT93 Deployment Triggered')
+              .addTable([
+                [ { data: 'Environment', header: true }, { data: 'Build Number', header: true } ],
+                [ 'uat93', '${{ needs.build.outputs.build_number }}' ]
+              ])
+              .addLink('View Workflow', `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/workflows/cd.yml`)
+              .write();
