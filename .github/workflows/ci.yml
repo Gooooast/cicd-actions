@@ -56,14 +56,14 @@ jobs:
       - name: Build docker
         run: echo "build docker success"
 
-#  trigger-cd-uat92:
-#    needs: build
-#    if: needs.build.outputs.should_deploy == 'true' && needs.build.outputs.environment == 'uat92'
-#    uses: ./.github/workflows/cd.yml
-#    with:
-#      environment: uat92
-#      buildNumber: ${{ needs.build.outputs.build_number }}
-#    secrets: inherit
+  trigger-cd-uat92:
+    needs: build
+    if: needs.build.outputs.should_deploy == 'true' && needs.build.outputs.environment == 'uat92'
+    uses: ./.github/workflows/cd.yml
+    with:
+      environment: uat92
+      buildNumber: ${{ needs.build.outputs.build_number }}
+    secrets: inherit
 
   trigger-cd-uat93-was9common:
     needs: build
