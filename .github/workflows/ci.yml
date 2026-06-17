@@ -3,18 +3,14 @@ name: CI
 on:
   pull_request:
     branches:
-      - master
       - develop
       - "feature/was9_common"
-      - "feature/pre-production"
   push:
     branches:
-      - master
-      - develop
-      - "feature/was9_common"
       - "feature/pre-production"
     tags:
       - "v*.*.*"
+
 jobs:
   build:
     name: Lint, Build & Test
@@ -30,32 +26,34 @@ jobs:
 
       - name: Prepare Metadata Info
         id: metadata
+        shell: bash
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            echo "build_number=uat92-${GITHUB_SHA::7}-${{ github.run_id }}-${{ github.run_attempt }}" >> $GITHUB_OUTPUT
-            echo "environment=uat92" >> $GITHUB_OUTPUT
-            echo "should_deploy=true" >> $GITHUB_OUTPUT
-          
-          elif [[ "${{ github.ref }}" == "refs/heads/feature/was9_common" ]]; then
-            echo "build_number=uat93-was9common-${GITHUB_SHA::7}-${{ github.run_id }}-${{ github.run_attempt }}" >> $GITHUB_OUTPUT
-            echo "environment=uat93-was9common" >> $GITHUB_OUTPUT
-            echo "should_deploy=true" >> $GITHUB_OUTPUT
-          
-          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            echo "build_number=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-            echo "environment=prod" >> $GITHUB_OUTPUT
-            echo "should_deploy=true" >> $GITHUB_OUTPUT
-          
+          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.base_ref }}" == "develop" ]]; then
+            echo "build_number=uat92-${GITHUB_SHA::7}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+            echo "environment=uat92" >> "$GITHUB_OUTPUT"
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+
+          elif [[ "${{ github.event_name }}" == "pull_request" && "${{ github.base_ref }}" == "feature/was9_common" ]]; then
+            echo "build_number=uat93-was9common-${GITHUB_SHA::7}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+            echo "environment=uat93-was9common" >> "$GITHUB_OUTPUT"
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+
+          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/v* ]]; then
+            # Tag release from pre-production should only run CI; CD is manual via workflow_dispatch.
+            echo "build_number=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+            echo "environment=prod" >> "$GITHUB_OUTPUT"
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+
           else
-            echo "build_number=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
-            echo "environment=none" >> $GITHUB_OUTPUT
-            echo "should_deploy=false" >> $GITHUB_OUTPUT
+            echo "build_number=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+            echo "environment=none" >> "$GITHUB_OUTPUT"
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build war
         run: echo "build war success"
 
-      - name: build docker
+      - name: Build docker
         run: echo "build docker success"
 
   trigger-cd-uat92:
