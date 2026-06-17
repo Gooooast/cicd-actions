@@ -10,6 +10,9 @@ on:
   push:
     branches:
       - master
+      - develop
+      - "feature/was9_common"
+      - "feature/pre-production"
     tags:
       - "v*.*.*"
 jobs:
