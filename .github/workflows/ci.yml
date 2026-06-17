@@ -61,59 +61,17 @@ jobs:
   trigger-cd-uat92:
     needs: build
     if: needs.build.outputs.should_deploy == 'true' && needs.build.outputs.environment == 'uat92'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Trigger deployment to UAT92
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const result = await github.rest.actions.createWorkflowDispatch({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            workflow_id: 'cd.yml',
-            ref: 'develop',
-            inputs: {
-              environment: 'uat92',
-              buildNumber: '${{ needs.build.outputs.build_number }}'
-            }
-            });
-
-            core.summary
-              .addHeading('UAT92 Deployment Triggered')
-              .addTable([
-                [ { data: 'Environment', header: true }, { data: 'Build Number', header: true }],
-                [ 'uat92', '${{ needs.build.outputs.build_number }}' ]
-              ])
-              .addLink('View Workflow', `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/workflows/cd.yml`)
-              .write();
+    uses: ./.github/workflows/cd.yml
+    with:
+      environment: uat92
+      buildNumber: ${{ needs.build.outputs.build_number }}
+    secrets: inherit
 
   trigger-cd-uat93-was9common:
     needs: build
     if: needs.build.outputs.should_deploy == 'true' && needs.build.outputs.environment == 'uat93-was9common'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Trigger deployment to UAT93
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const result = await github.rest.actions.createWorkflowDispatch({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            workflow_id: 'cd.yml',
-            ref: 'feature/was9_common',
-            inputs: {
-              environment: 'uat93',
-              buildNumber: '${{ needs.build.outputs.build_number }}'
-            }
-            });
-
-            core.summary
-              .addHeading('UAT93 Deployment Triggered')
-              .addTable([
-                [ { data: 'Environment', header: true }, { data: 'Build Number', header: true } ],
-                [ 'uat93', '${{ needs.build.outputs.build_number }}' ]
-              ])
-              .addLink('View Workflow', `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/workflows/cd.yml`)
-              .write();
+    uses: ./.github/workflows/cd.yml
+    with:
+      environment: uat93
+      buildNumber: ${{ needs.build.outputs.build_number }}
+    secrets: inherit
