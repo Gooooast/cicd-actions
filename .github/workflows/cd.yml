@@ -1,0 +1,57 @@
+name: CD
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      buildNumber:
+        required: true
+        type: string
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment"
+        required: true
+        type: choice
+        options:
+          - uat92
+          - uat93
+          - prod
+          - dr
+      buildNumber:
+        description: "Build number or tag to deploy"
+        required: true
+        type: string
+
+jobs:
+  prepare-deployment:
+    runs-on: ubuntu-latest
+
+    outputs:
+      environment: ${{ steps.prepare.outputs.environment }}
+      build_number: ${{ steps.prepare.outputs.build_number }}
+
+    steps:
+      - id: prepare
+        run: |
+          ENVIRONMENT="${{ inputs.environment }}"
+          BUILD_NUMBER="${{ inputs.buildNumber }}"
+
+          echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+          echo "Preparing deployment for environment: ${ENVIRONMENT}"
+          echo "Build Number: ${BUILD_NUMBER}"
+
+  deploy:
+    needs: prepare-deployment
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: |
+          echo "Deploying ${{
+            needs.prepare-deployment.outputs.build_number
+          }}"
