@@ -77,12 +77,12 @@ jobs:
               environment: 'uat92',
               buildNumber: '${{ needs.build.outputs.build_number }}'
             }
-            )};
+            });
 
             core.summary
               .addHeading('UAT92 Deployment Triggered')
               .addTable([
-                [ { data: 'Environment', header: true }, { data: 'Build Number', header: true } ],
+                [ { data: 'Environment', header: true }, { data: 'Build Number', header: true }],
                 [ 'uat92', '${{ needs.build.outputs.build_number }}' ]
               ])
               .addLink('View Workflow', `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/workflows/cd.yml`)
@@ -107,7 +107,7 @@ jobs:
               environment: 'uat93',
               buildNumber: '${{ needs.build.outputs.build_number }}'
             }
-            )};
+            });
 
             core.summary
               .addHeading('UAT93 Deployment Triggered')
