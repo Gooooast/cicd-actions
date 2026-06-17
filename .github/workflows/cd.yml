@@ -1,29 +1,33 @@
 name: CD
 
 on:
-  workflow_call:
-    inputs:
-      environment:
-        required: true
-        type: string
-      buildNumber:
-        required: true
-        type: string
-
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: "Deployment environment"
-        required: true
-        type: choice
-        options:
-          - uat92
-          - uat93
-          - prod
-      buildNumber:
-        description: "Build number or tag to deploy"
-        required: true
-        type: string
+  pull_request:
+    branches:
+      - develop
+      - "feature/was9_common"
+#  workflow_call:
+#    inputs:
+#      environment:
+#        required: true
+#        type: string
+#      buildNumber:
+#        required: true
+#        type: string
+#
+#  workflow_dispatch:
+#    inputs:
+#      environment:
+#        description: "Deployment environment"
+#        required: true
+#        type: choice
+#        options:
+#          - uat92
+#          - uat93
+#          - prod
+#      buildNumber:
+#        description: "Build number or tag to deploy"
+#        required: true
+#        type: string
 
 jobs:
   prepare-deployment:
