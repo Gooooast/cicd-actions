@@ -13,24 +13,24 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-          description: 'Deployment environment (e.g., uat92, uat93)'
-          required: true
-          type: choice
-          options:
-            - uat92
-            - uat93
+        description: "Deployment environment"
+        required: true
+        type: choice
+        options:
+          - uat92
+          - uat93
+          - prod
       buildNumber:
-          description: 'Build number to deploy'
-          required: true
-          type: string
+        description: "Build number or tag to deploy"
+        required: true
+        type: string
 
 jobs:
   prepare-deployment:
     runs-on: ubuntu-latest
     steps:
       - name: Set up deployment variables
-        id: set-vars
         run: |
           echo "Preparing deployment for environment: ${{ inputs.environment }} with build number: ${{ inputs.buildNumber }}"
-          echo "ENVIRONMENT=${{ inputs.environment }}" >> $GITHUB_ENV
-          echo "BUILD_NUMBER=${{ inputs.buildNumber }}" >> $GITHUB_ENV
+          echo "ENVIRONMENT=${{ inputs.environment }}" >> "$GITHUB_ENV"
+          echo "BUILD_NUMBER=${{ inputs.buildNumber }}" >> "$GITHUB_ENV"
